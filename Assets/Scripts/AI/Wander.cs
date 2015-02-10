@@ -11,7 +11,7 @@ public class Wander : MonoBehaviour
 	public float directionChangeInterval = 1;
 	public float maxHeadingChange = 180;
 	public int count = 0;
-
+	
 	CharacterController controller;
 	float heading;
 	Vector3 targetRotation;
@@ -19,7 +19,12 @@ public class Wander : MonoBehaviour
 	public Vector2 center;
 	Vector2 randOffset;
 	Vector3 newPosition;
-
+	Vector3 targetDir;
+	Vector3 newTargetPosition;
+	Vector3 newDir;
+	int denominator;
+	
+	
 	void Awake ()
 	{
 		
@@ -29,15 +34,14 @@ public class Wander : MonoBehaviour
 		heading = Random.Range(0, 360);
 		transform.eulerAngles = new Vector3(0, heading, 0);
 		
-		//StartCoroutine(NewHeading());
 		closest = GameObject.FindGameObjectWithTag("Viking");;
+		denominator = 80;
 		
-		Debug.Log ("hihiJoseph");
 	}
 	
 	void Update ()
 	{
-
+		
 		if (Input.GetMouseButtonDown(0))
 		{
 			RaycastHit hit;
@@ -48,35 +52,44 @@ public class Wander : MonoBehaviour
 				Debug.Log("newPosition = " + newPosition);
 			}
 		}
-
 		
-
+		
+		
 		speed = 15;
-		//center.Set (closest.transform.position.x, closest.transform.position.z);
 		center.Set (newPosition.x, newPosition.z);
-
-					
-			if(count%250 == 0) {
-				randOffset = Random.insideUnitCircle * 10 + center;
-				count = 0;
-			}
-			//Vector3 newTargetPosition = new Vector3 (closest.transform.position.x, transform.position.y, closest.transform.position.z);
-			Vector3 newTargetPosition = new Vector3 (randOffset.x, transform.position.y, randOffset.y);
-
-			Vector3 targetDir = newTargetPosition - transform.position;
-			float step = 2 * Time.deltaTime;
-			Vector3 newDir = Vector3.RotateTowards (transform.forward, targetDir, step, 0.0F);
-			
-			
-			transform.rotation = Quaternion.LookRotation (newDir);
-			//transform.rotation = Quaternion.Slerp (transform.rotation, Quaternion.LookRotation (newDir), 3 * Time.deltaTime);
+		
+		
+		if(count%denominator == 0) {
+			randOffset = Random.insideUnitCircle * 10 + center;
+			count = 0;
+		}
+		
+		newTargetPosition = new Vector3 (randOffset.x, transform.position.y, randOffset.y);
+		targetDir = newTargetPosition - transform.position;
+		
+		if (Mathf.Abs (Vector3.Angle (targetDir, transform.forward)) > 120) {
+			targetDir = transform.forward;
+			newTargetPosition = transform.position;
+			denominator = 1;
+		} 
+		else {
+			denominator = 80;
+		}
+		
+		Debug.Log ("angle =  " + Vector3.Angle(targetDir, transform.forward));
+		
+		float step = 6 * Time.deltaTime;
+		newDir = Vector3.RotateTowards (transform.forward, targetDir, step, 0.0F);
+		
+		
+		transform.rotation = Quaternion.LookRotation (newDir);
 		transform.position = Vector3.MoveTowards (transform.position, newTargetPosition, step);
-			
+		
 		count++;
 	}
 	
-
-
+	
+	
 }
 
 
